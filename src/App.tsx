@@ -15,7 +15,7 @@ import {
 function App(): React.JSX.Element {
 
   return (
-    <SafeAreaView>
+    <SafeAreaView style={styles.container}>
       <StatusBar />
       
     </SafeAreaView>
@@ -24,6 +24,13 @@ function App(): React.JSX.Element {
 
 
 const styles=StyleSheet.create({
+  container: {
+    flex:1,
+    backgroundColor:'#f1f1f1d6',
+    maxHeight:'100%',
+    justifyContent:'flex-end',
+    paddingVertical:20
+  },
 })
 
 export default App;
