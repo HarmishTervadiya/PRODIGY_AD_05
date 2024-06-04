@@ -91,6 +91,9 @@ function App(): React.JSX.Element {
       case '/':
         result = +firstValue / +secondValue;
         break;
+      case '%':
+        result = +firstValue % +secondValue;
+        break;
       default:
         result = 0;
     }
@@ -145,7 +148,7 @@ function App(): React.JSX.Element {
         <View style={styles.buttonRow}>
           <BtnCard isGray text='AC' operation={handleClear} />
           <BtnCard isGray text='C' operation={handleBackSpace } />          
-          <BtnCard isGray text='%' operation={() => { } } />
+          <BtnCard isGray text='%' operation={() => handleOperatorInput('%') } />
           <BtnCard isGray text='-' operation={() => handleOperatorInput('-')} />
 
           {/* Other operator buttons */}
@@ -189,7 +192,7 @@ function App(): React.JSX.Element {
 const styles=StyleSheet.create({
   container: {
     flex:1,
-    backgroundColor:'#e5e4e3ba',
+    backgroundColor:'#f1f1f1d6',
     maxHeight:'100%',
     justifyContent:'flex-end',
     paddingVertical:20
@@ -203,11 +206,13 @@ const styles=StyleSheet.create({
     textAlign: 'right',
     padding:5,
     fontSize:42,
-    fontWeight:'bold'
+    color:'black'
   },
   resultText: {
     fontSize: 42,
     textAlign: 'right',
+    color:'black'
+
   },
   operatorText:{
     fontSize: 20,
@@ -235,6 +240,7 @@ const styles=StyleSheet.create({
   },
   buttonText: {
     fontSize: 20,
+    fontWeight:'500',
   },
 })
 
