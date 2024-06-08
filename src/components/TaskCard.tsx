@@ -111,6 +111,7 @@ const TaskCard = ( {id,title,description,date,bgColor,list,onUpdate}:TaskProps) 
               value={updatedTitle}
               onChangeText={setTitle}
               editable={editState}
+              multiline={true}
             />
 
             <Text style={styles.dateTimeText} onPress={()=>{}}>{date}</Text>
@@ -119,6 +120,7 @@ const TaskCard = ( {id,title,description,date,bgColor,list,onUpdate}:TaskProps) 
               value={updatedDescription}
               onChangeText={setDescription}
               editable={editState}
+              multiline={true}
             />
 
 
@@ -219,7 +221,9 @@ const styles = StyleSheet.create({
         fontSize:16,
         fontWeight:'400',
         paddingTop:10,
-        alignSelf:'flex-start'
+        alignSelf:'flex-start',
+        height:'auto',
+
       },
     centeredView: {
         flex: 1,

@@ -56,12 +56,14 @@ const Form = ({visibility,onPress,taskList}:FormPromts) => {
                 onChangeText={setTitle}
                 placeholder='Enter Title'
                 style={styles.inputBox}
+                multiline
             />
 
             <TextInput 
                 onChangeText={setDescription}
                 placeholder='Enter Description'
                 style={styles.inputBox}
+                multiline
             />
 
             {/* <View style={styles.dateTimeBoxContainer}> */}
