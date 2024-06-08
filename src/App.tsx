@@ -17,11 +17,20 @@ import {
 import Form from './components/Form';
 import TaskCard from './components/TaskCard';
 import DatePicker from 'react-native-date-picker';
+import { loadTodos } from '../backend/storage';
+
+
+export interface ToDoProps{
+  id:string,
+  title:string,
+  description:string,
+  date: string,
+}
 
 function App(): React.JSX.Element {
 
   const slideAnim = useRef(new Animated.Value(0)).current; 
-  const [taskList,setTaskList]=useState(['Hello','Hello','Hello', 'Hello', 'Hello'])
+  const [taskList,setTaskList]=useState<ToDoProps[]>([])
   
   useEffect(()=>{
     Animated.timing(slideAnim,{
@@ -31,17 +40,28 @@ function App(): React.JSX.Element {
     }).start();
   })
 
+ 
+  const loadItems =async ()=>{
+    const data=await loadTodos()
+    setTaskList(JSON.parse(data))
+  }
+
+  useEffect(()=>{
+    loadItems()
+  },[])
   
   const randomColor = (index:number)=>{
     const colors=['#40e258','#c86fff','#87ddff','#ffc387']
-    return colors[index%taskList.length]
+    return colors[index%5]
   }
 
-  const [date, setDate] = useState(new Date())
-  const [open, setOpen] = useState(false)
 
   const [formDialog,showFormDialog]=useState(false)
-
+  
+  
+  const closeForm=()=>{
+    showFormDialog(false)
+  }
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar />
@@ -60,7 +80,6 @@ function App(): React.JSX.Element {
         }]}>Your Tasks</Animated.Text>
 
         <Animated.View style={[{
-          
           transform:[
             {
               translateX: slideAnim.interpolate({
@@ -71,7 +90,7 @@ function App(): React.JSX.Element {
           ],
         }]}>
         <TouchableOpacity
-        onPress={()=>setOpen(true)}
+        onPress={()=>showFormDialog(!formDialog)}
         style={styles.addButton}
         >
           <Text style={styles.buttonText}>+</Text>
@@ -79,38 +98,27 @@ function App(): React.JSX.Element {
         </Animated.View>
 
       </View>
-
+        {/* <Text>{taskList.length}</Text> */}
       <FlatList 
       numColumns={2}
-      data={[1,2,3,4,5,6,7,8,9,10,5,8,9,5]}
+      data={taskList}
       scrollEnabled
+      keyExtractor={(item)=>item.id}
       showsVerticalScrollIndicator={false}
-      renderItem={(index)=>{
+      renderItem={({item,index})=>{
         return(
           <>
-          <TaskCard id={'Hello'} bgColor={randomColor(index.index)} title='Hello' description='How you doing Man?' time='10AM' date='5-6-2024' />
+          <TaskCard onUpdate={loadItems} list={taskList}  id={index.toString()} bgColor={randomColor(index)} title={item.title} description={item.description}  date={item.date} />
           </>
         )
       }}
       />
 
-    <DatePicker
-        modal
-        open={open}
-        date={date}
-        onConfirm={(date) => {
-          setOpen(false)
-          setDate(date)
-        }}
-        onCancel={() => {
-          setOpen(false)
-        }}
-      />
 
-      {/* {formDialog ? (
-      <Form visibility={formDialog} />
+      {formDialog ? (
+      <Form onPress={closeForm} taskList={taskList} visibility={formDialog} />
       ):(null)}
-     */}
+    
     </SafeAreaView>
   );
 }

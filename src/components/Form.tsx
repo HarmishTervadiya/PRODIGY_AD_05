@@ -4,30 +4,48 @@ import { Button, Modal, StyleSheet, Text, View,
     TextInput,
     TouchableOpacity
  } from 'react-native'
-import React, { PropsWithChildren, useState } from 'react'
+import React, { PropsWithChildren, useEffect, useState } from 'react'
+import DatePicker from 'react-native-date-picker'
+import {saveTodos} from '../../backend/storage'
+import { ToDoProps } from '../App'
 
 type FormPromts = PropsWithChildren<{
     visibility:boolean,
-    id?:string
+    id?:string,
+    onPress: ()=>void,
+    taskList: ToDoProps[]
 }>
 
-const Form = ({visibility,id}:FormPromts) => {
+const Form = ({visibility,onPress,taskList}:FormPromts) => {
 
     const [dialogVisibility,ShowDialogVisivbility]=useState(visibility)
 
     const [title,setTitle]=useState('')
     const [description,setDescription]=useState('')
-    const [time,setTime]=useState('')
-    const [date,setDate]=useState('')
-
-  return (
+   
+    const [date, setDate] = useState(new Date().toLocaleString())
+    const [open, setOpen] = useState(false)
+  
+    const addItem=async ()=>{
+    try{
+      const newToDo = { id: Math.random().toString(), title, description, date };
+      let updatedData=taskList
+      updatedData.push(newToDo)
+      const res=saveTodos(updatedData);
+      onPress()
+    }
+     catch(e){
+      console.error('Error adding to-do items:', e);
+     } 
+    }
+    
+    return (
     <View style={styles.centeredView}>
       <Modal
         animationType="slide"
         transparent={true}
         visible={dialogVisibility}
         onRequestClose={() => {
-          Alert.alert('Modal has been closed.');
           ShowDialogVisivbility(!dialogVisibility);
         }}>
         <View style={styles.centeredView}>
@@ -46,29 +64,54 @@ const Form = ({visibility,id}:FormPromts) => {
                 style={styles.inputBox}
             />
 
-            <View style={styles.dateTimeBoxContainer}>
+            {/* <View style={styles.dateTimeBoxContainer}> */}
 
             <Pressable 
                 style={styles.dateTimeBox}
-                onPress={()=>ShowDialogVisivbility(false)}
-            ><Text>Select Date</Text></Pressable>
+                onPress={()=>setOpen(true)}
+            ><Text> {date.toLocaleString()} </Text></Pressable>
 
-            <TouchableOpacity
+            {/* <TouchableOpacity
                 style={styles.dateTimeBox}
                 onPress={()=>ShowDialogVisivbility(false)}
-            ><Text>Select Time</Text></TouchableOpacity>
-            </View>
+            ><Text>Select Time</Text></TouchableOpacity> */}
+            {/* </View> */}
 
+            <View style={styles.btnContainer}>
 
             <TouchableOpacity
               style={[styles.button, styles.confirmButton]}
-              onPress={() => ShowDialogVisivbility(!dialogVisibility)}>
+              onPress={() => addItem()}>
               <Text style={styles.textStyle}>Add Item</Text>
             </TouchableOpacity>
         
+        
+            <TouchableOpacity
+              style={[styles.button, styles.confirmButton,{
+                backgroundColor:'red'
+              }]}
+              onPress={() => onPress()}>
+              <Text style={styles.textStyle}>Close</Text>
+            </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
+
+      
+    <DatePicker
+        modal
+        open={open}
+        date={new Date()}
+        onConfirm={(date) => {
+          setOpen(false)
+          setDate(date.toDateString())
+        }}
+        onCancel={() => {
+          setOpen(false)
+        }}
+      />
+
     </View>
   )
 }
@@ -127,14 +170,16 @@ const styles = StyleSheet.create({
         paddingHorizontal:15,
         paddingVertical:11,
         fontSize:14,
+        alignSelf:'baseline',
+        margin:8
       },
-      dateTimeBoxContainer:{
+      btnContainer:{
         flexDirection:'row',
-        justifyContent:'space-between',
-        width:'100%',
+        justifyContent:'space-around',
+        width:'60%',
         alignItems:'baseline',
         padding:6,
-        maxHeight:'auto'
+        maxHeight:'auto',
       },
       titleText:{
         fontSize:20,
