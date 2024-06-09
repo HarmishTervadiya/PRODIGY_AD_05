@@ -1,3 +1,3 @@
-Task 3 provided by Prodigy InfoTech is Completed.
+Task 4 provided by Prodigy InfoTech is Completed.
 
-The task was to built a stopwatch
+The task was to build a Tic Tac Toe game
