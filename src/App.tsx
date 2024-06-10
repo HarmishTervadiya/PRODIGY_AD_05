@@ -11,197 +11,116 @@ import {
   Switch,
   TouchableOpacity,
   View,
+  Linking,
+  ScrollView,
 } from 'react-native';
+import { RNCamera } from 'react-native-camera';
 
 
-
-type IconsProps = PropsWithChildren<{
-  name:string
-}>
-
-const IconShape=({name}:IconsProps)=>{
-  switch(name){
-    case 'cross':
-      return <Text style={[styles.text,{
-        color:'red'
-      }]}>X</Text>
-      break;
-   case 'circle':
-    return <Text style={[styles.text,{
-      color:'orange'
-    }]} >O</Text>
-      break;
-   default:
-      return <Text style={styles.text}></Text>      
-  }
-
-}
+import QRCodeScanner from 'react-native-qrcode-scanner';
 
 function App(): React.JSX.Element {
+    // const [data,setData]=useState<string|undefined>('')
+    // const onSuccess =()=>{
+    //   Linking.openURL(data!).catch(e=>console.log(e))
+    // }
 
-  const [playerTurn,setPlayerTurn]=useState('cross')
-  const [isWon,setIsWon]=useState(true)
-  const [gameState, setGameState]=useState(new Array(9).fill('empty',0,9))  
-  const [gameWinner,setGameWinner]=useState<string>('')
+  const [scannedData, setScannedData] = useState(null);
+  const [isScanning, setIsScanning] = useState(false);
+  const [scannedImage, setScannedImage] = useState();
 
-  const checkIsWinner= ()=>{
-    if(
-        gameState[0]===gameState[1] &&
-        gameState[0]===gameState[2] &&
-        gameState[0]!='empty'
-    ){
-        setGameWinner(gameState[0] + ' won the game')
-    }
-    else if(
-        gameState[3]!='empty' &&
-        gameState[3]===gameState[4] &&
-        gameState[4]===gameState[5] 
-    ){
-        setGameWinner(gameState[3] + ' won the game')
-    }
-    else if(
-        gameState[6]!='empty' &&
-        gameState[6]===gameState[7] &&
-        gameState[7]===gameState[8] 
-    ){
-        setGameWinner(gameState[6] + ' won the game')
-    }
-    else if(
-        gameState[0]!='empty' &&
-        gameState[0]===gameState[3] &&
-        gameState[3]===gameState[6] 
-    ){
-        setGameWinner(gameState[1] + ' won the game')
-    }
-    else if(
-        gameState[1]!='empty' &&
-        gameState[1]===gameState[4] &&
-        gameState[4]===gameState[7] 
-    ){
-        setGameWinner(gameState[1] + ' won the game')
-    }
-    else if(
-        gameState[2]!='empty' &&
-        gameState[2]===gameState[5] &&
-        gameState[5]===gameState[8] 
-    ){
-        setGameWinner(gameState[2] + ' won the game')
-    }
-    else if(
-        gameState[0]!='empty' &&
-        gameState[0]===gameState[4] &&
-        gameState[4]===gameState[8] 
-    ){
-        setGameWinner(gameState[0] + ' won the game')
-    }
-    else if(
-        gameState[2]!='empty' &&
-        gameState[2]===gameState[4] &&
-        gameState[4]===gameState[6] 
-    ){
-        setGameWinner(gameState[2] + ' won the game')
-    }
-}
+  const cameraRef = useRef(null);
 
-  const playTurn = (itemNumber:number)=>{
 
-    if(gameWinner===''){
-      if(gameState[itemNumber]==='empty'){
-        gameState[itemNumber]= playerTurn==='cross' ? 'cross':'circle'
-        setPlayerTurn(playerTurn!=='cross' ? 'cross':'circle')
+  const handleScan = (data) => {
+    setIsScanning(false);
+    setScannedData(data);
+  };
+
+
+  const handleOpenLink = () => {
+    if (scannedData) {
+      if (scannedData.data.startsWith('http')) {
+        const isImage = scannedData.data.endsWith('.jpg') || scannedData.data.endsWith('.png');
+        if (isImage) {
+          Linking.openURL(scannedData.data); // Open image URL in browser
+        } else {
+          Linking.openURL(scannedData.data); // Open link
+        }
+      } else if (scannedData.data.includes('@')) {
+        Linking.openURL(`mailto:${scannedData.data}`); 
+      } else {
+        
+        alert('Scanned content is not a link or email address.'); 
       }
     }
-  checkIsWinner()
-}
-
-  const resetGame=()=>{
-    setPlayerTurn('cross')
-    setGameState(new Array(9).fill('empty',0,9))
-    setGameWinner('')
-  }
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <>
       <StatusBar />
-      { gameWinner=='' ? (
-        
-      <View style={[styles.card,
-        {
-          backgroundColor: playerTurn==='cross'? '#d52f2f' : 'orange'
-        }]}>
+      <ScrollView scrollEnabled showsVerticalScrollIndicator={false}>
+      <View style={styles.container}>
+      <RNCamera
+        useNativeZoom
+        ref={cameraRef}
+        style={styles.camera}
+        onBarCodeRead={handleScan}
+        captureAudio={false} // Disable audio recording for efficiency
+      />
+    </View>
 
-        <Text style={[styles.playerText]}>{ 'Player ' + (playerTurn==='cross'? 'X' : 'O') +' s turn'}</Text>
-      </View>
 
-      ) : (
-
-        <View style={[styles.card,
-          {
-            backgroundColor: '#1ea71e'
-          }]}>
-          <Text style={[styles.playerText]}>{gameWinner}</Text>
+      {scannedData && (
+        <View style={styles.scannedDataContainer}>
+          <Text style={styles.scannedDataText} onPress={handleOpenLink}>{scannedData.data}</Text>
+          <TouchableOpacity style={styles.scanAgainButton}>
+            <Text style={styles.scanAgainText}>Scan Again</Text>
+          </TouchableOpacity>
         </View>
-
       )}
 
-      <FlatList 
-        data={gameState}
-        numColumns={3}
-        renderItem={({item,index})=>(
-          <Pressable
-          style={[styles.box]}
-          onPress={()=>playTurn(index)}
-          >
-            <IconShape name={item} />
-          
-          </Pressable>
-        )}
-      />
-        <TouchableOpacity
-        style={[styles.card,{
-          backgroundColor:'#1d8dd7'
-        }]}
-        onPress={resetGame}>
-          <Text style={styles.playerText}>{gameWinner? 'Start Again' :'Reset'}</Text>
-        </TouchableOpacity>
-    </SafeAreaView>
+
+
+    </ScrollView>
+    </>
   );
 }
 
 
 const styles=StyleSheet.create({
-  container: {
-    justifyContent: 'flex-start',
-    paddingTop:30,
-    alignItems: 'center',
-    backgroundColor:'#ffffff'
-  },
-  box:{
-    borderWidth:.5,
-    padding:20,
-    width:80
-  },
-  text:{
-    fontSize:32,
-    color:'black',
-    fontWeight:'bold',
-    textAlign:'center'
-  },
-  card:{
-    padding:10,
-    margin:10,
-    elevation:0,
-    borderRadius:5,
-    alignItems:'center',
-    justifyContent:'center',
-    width:240
-  },
-  playerText:{
-    fontSize:20,
-    marginBottom:10,
-    color:'white',
-    fontWeight:'semibold'
-  }
+    container: {
+      flexDirection: 'column',
+    },
+    camera: {
+      flex:1,
+      height:300,
+      marginBottom:90,
+    },
+    scannedDataContainer: {
+      flex:1,
+      padding: 20,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    scannedDataText: {
+      color: 'white',
+      fontSize: 18,
+    },
+    scanAgainButton: {
+      marginTop: 20,
+      padding: 10,
+      backgroundColor: '#ddd',
+      borderRadius: 5,
+    },
+    scanAgainText: {
+      textAlign: 'center',
+    },
+    controlsContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: 10,
+    },
 })
 
 export default App;
